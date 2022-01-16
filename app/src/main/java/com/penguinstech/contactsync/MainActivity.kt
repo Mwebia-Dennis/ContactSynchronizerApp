@@ -7,15 +7,22 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.penguinstech.contactsync.room.AppDatabase
+import com.penguinstech.contactsync.room.Contacts
 
 class MainActivity : AppCompatActivity() {
+
+    var roomDb: AppDatabase? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
+        roomDb = AppDatabase.getDatabase(this)
         askForContactPermission()
     }
 
@@ -59,6 +66,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun alreadyHasPermission() {
         this.startService(Intent(this, ContactService::class.java))
+        updateUi()
+    }
+
+
+    private fun updateUi() {
+        val contactList:List<Contacts> = roomDb!!.ContactDataDao().all
+        val recyclerView: RecyclerView = findViewById(R.id.mainRv)
+        recyclerView.layoutManager = LinearLayoutManager(this,LinearLayoutManager.VERTICAL, false)
+        val adapter = Adapter(this, contactList)
+        recyclerView.adapter = adapter
+
     }
 
     override fun onDestroy() {
