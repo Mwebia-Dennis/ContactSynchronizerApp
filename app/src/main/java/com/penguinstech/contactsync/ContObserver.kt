@@ -2,6 +2,7 @@ package com.penguinstech.contactsync
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.database.Cursor
@@ -11,6 +12,7 @@ import android.os.Looper
 import android.provider.ContactsContract
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.penguinstech.contactsync.room.AppDatabase
 import com.penguinstech.contactsync.room.Contacts
 import java.util.ArrayList
@@ -381,6 +383,7 @@ class ContObserver (handler: Handler?, var context: Context) : ContentObserver(h
                 context
             ).ContactDataDao().update(contactsData)
             cur1.close()
+
             lastUpdated = System.currentTimeMillis()
             Handler(Looper.getMainLooper()).postDelayed({
                 AppGlobals.deletedByMe = false

@@ -22,6 +22,7 @@
             </intent-filter>
         </activity>
 
+
         <service android:name=".ContactService"
             android:enabled="true"
             />

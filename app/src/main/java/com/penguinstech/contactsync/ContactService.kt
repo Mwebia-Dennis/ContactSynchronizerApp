@@ -5,12 +5,14 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Binder
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.provider.ContactsContract
 import android.util.Log
 import android.widget.Toast
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.penguinstech.contactsync.room.AppDatabase
 import com.penguinstech.contactsync.room.ContUPDt
 import com.penguinstech.contactsync.room.Contacts
@@ -26,13 +28,13 @@ class ContactService : Service() {
     private lateinit var arrayList: ArrayList<HashMap<String, String>>
     private lateinit var contObserver: ContObserver
     private lateinit var roomDB: AppDatabase
-
+    private val binder = LocalBinder()
 
 
     override fun onBind(intent: Intent): IBinder? {
 //        TODO("Return the communication channel to the service.")
 
-        return null
+        return binder
     }
 
     override fun onCreate() {
@@ -150,6 +152,9 @@ class ContactService : Service() {
         startContactObserver()
 
     }
+
+
+
 
     private fun processData() {
         val data: HashMap<String, HashMap<String,String>> = HashMap()
@@ -337,4 +342,11 @@ class ContactService : Service() {
             ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId)
         return Uri.withAppendedPath(contactUri, ContactsContract.Contacts.Photo.CONTENT_DIRECTORY)
     }
+
+
+    inner class LocalBinder : Binder() {
+        // Return this instance of LocalService so clients can call public methods
+        fun getService(): ContactService = this@ContactService
+    }
+
 }
