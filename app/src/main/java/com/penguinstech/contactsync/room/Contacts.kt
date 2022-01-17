@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 import java.io.Serializable
 
 
-@Entity(tableName = "contactsdata", indices = [Index(value = ["id"], unique = true)])
+@Entity(tableName = "contactsdata", indices = [Index(value = ["id", "mobile_no"], unique = true)])
 class Contacts : Serializable {
     @PrimaryKey
     var id = 0
