@@ -7,4 +7,14 @@
         app:showAsAction="always"
         android:id="@+id/refresh" />
 
+    <item android:title="@string/friends"
+        android:icon="@drawable/ic_baseline_contact_phone_24"
+        app:showAsAction="ifRoom"
+        android:id="@+id/friends" />
+
+    <item android:title="@string/logout"
+        android:icon="@drawable/ic_baseline_power_settings_new_24"
+        app:showAsAction="ifRoom"
+        android:id="@+id/logout" />
+
 </menu>

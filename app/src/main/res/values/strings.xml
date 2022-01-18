@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">ContactSync</string>
     <string name="refresh">Refresh</string>
+    <string name="user_name">user name</string>
+    <string name="login">Login</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="friends">Friends</string>
+    <string name="logout">Logout</string>
 </resources>

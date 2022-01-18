@@ -34,6 +34,7 @@ class Contacts : Serializable {
     @ColumnInfo(name = "cont_state") var cont_state: String? = ""
     @ColumnInfo(name = "cont_country") var cont_country: String? = ""
     @ColumnInfo(name = "cont_pobox") var cont_pobox: String? = ""
+    @ColumnInfo(name = "updated_at", defaultValue = "CURRENT_TIMESTAMP") var updated_at: String? = ""
 }
 
 

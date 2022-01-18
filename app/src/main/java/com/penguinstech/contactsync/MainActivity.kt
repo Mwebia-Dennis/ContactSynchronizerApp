@@ -15,8 +15,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.FirebaseApp
+import com.google.firebase.database.FirebaseDatabase
 import com.penguinstech.contactsync.room.AppDatabase
 import com.penguinstech.contactsync.room.Contacts
+import com.penguinstech.contactsync.sync.SyncService
 import java.util.*
 
 
@@ -48,6 +51,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        FirebaseApp.initializeApp(this)
+        if (!checkIfUserIsLoggedIn()) {
+            startActivity(Intent(this, LoginActivity::class.java))
+//            this.finish()
+        }
         roomDb = AppDatabase.getDatabase(this)
 
         Intent(this, ContactService::class.java).also { intent ->
@@ -60,6 +68,14 @@ class MainActivity : AppCompatActivity() {
         askForContactPermission()
     }
 
+    private fun checkIfUserIsLoggedIn(): Boolean {
+
+        val sharedPref = this@MainActivity.getSharedPreferences(
+            LoginActivity.appId, Context.MODE_PRIVATE)?: return false
+        val userId = sharedPref.getString("phoneNo", "")
+
+        return (userId!! != "")
+    }
 
     private fun askForContactPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -100,6 +116,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun alreadyHasPermission() {
         this.startService(Intent(this, ContactService::class.java))
+        this.startService(Intent(this, SyncService::class.java))
         updateUi()
     }
 
@@ -177,6 +194,23 @@ class MainActivity : AppCompatActivity() {
                 }, ((time * 1000).toLong()))//10 seconds
 
             }
+            R.id.friends-> {
+
+                startActivity(Intent(this@MainActivity, FriendsActivity::class.java))
+            }
+            R.id.logout-> {
+                //logout
+                val sharedPref = this@MainActivity.getSharedPreferences(
+                    LoginActivity.appId, Context.MODE_PRIVATE
+                )
+                val editor = sharedPref.edit()
+                editor.putString("userId", "")
+                editor.putString("userName", "")
+                editor.putString("phoneNo","")
+                editor.commit()
+                startActivity(Intent(this@MainActivity, LoginActivity::class.java))
+                this@MainActivity.finish()
+            }
         }
         return false
     }
@@ -184,7 +218,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
 
-        unbindService(connection)
+//        unbindService(connection)
         mBound = false
     }
 

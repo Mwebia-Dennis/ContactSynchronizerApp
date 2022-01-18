@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     version = 5,
-    entities = [Contacts::class, ContUPDt::class],
+    entities = [Contacts::class, ContUPDt::class, SyncToken::class, Friend::class],
 //    autoMigrations = [AutoMigration(from = 1, to = 2)],
     exportSchema = false
 )
@@ -39,4 +39,6 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun ContactDataDao(): ContactsDao
     abstract fun ContUpdateDao(): ContUpdateDao
+    abstract fun SyncTokenDao(): SyncTokenDao
+    abstract fun FriendsDao(): FriendsDao
 }
