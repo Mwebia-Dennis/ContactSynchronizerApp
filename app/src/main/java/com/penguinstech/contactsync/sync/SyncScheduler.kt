@@ -130,14 +130,12 @@ class SyncScheduler: BroadcastReceiver() {
     }
 
     private fun removeDeletedFriendsContacts() {
-        GlobalScope.launch {
-            //get all friends
-            //check if friend is in contact else remove
-            val listOfFriends:List<Friend> = roomDb!!.FriendsDao().getFriends
-            listOfFriends.forEach {
-                if(roomDb!!.ContactDataDao().getContactInfo(it.friend_id) == null) {
-                    roomDb!!.FriendsDao().delete(it)
-                }
+        //get all friends
+        //check if friend is in contact else remove
+        val listOfFriends:List<Friend> = roomDb!!.FriendsDao().getFriends
+        listOfFriends.forEach {
+            if(roomDb!!.ContactDataDao().getContactInfo(it.friend_id) == null) {
+                roomDb!!.FriendsDao().delete(it)
             }
         }
     }
@@ -171,8 +169,8 @@ class SyncScheduler: BroadcastReceiver() {
             ) //note flag_update_current which tells system how to handle new and existing pending intent
             am.setRepeating(
                     AlarmManager.RTC_WAKEUP,
-                    midnight.timeInMillis, (1000 * 60 * 1).toLong(), pi
-            ) // Millisec * Second * Minute  = 1 minute
+                    midnight.timeInMillis, (1000 * 60 * 60).toLong(), pi
+            ) // Millisec * Second * Minute  = 1 hour
         }
     }
 
