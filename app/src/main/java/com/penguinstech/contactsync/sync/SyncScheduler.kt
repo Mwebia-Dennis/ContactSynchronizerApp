@@ -86,47 +86,56 @@ class SyncScheduler: BroadcastReceiver() {
             val ref = database!!.getReference("users")
             for (contact in contactList) {
                 //if in firebase then add to friends
-                val listener = object:ValueEventListener {
-                    override fun onDataChange(dataSnapshot: DataSnapshot) {
-
-                        if (dataSnapshot.exists()) {
-
-
-                            val data: User = dataSnapshot.getValue(User::class.java) as User
-                            if (data.userId != null) {
-                                val friend = Friend()
-                                friend.friend_id = contact.id.toString()
-                                friend.mobile_no = contact.mobile_no
-                                friend.name = contact.name
-
-                                //check if user in room
-                                Log.i("App User: ", " User Name: " + data.userName)
-                                val count: Int = roomDb!!.FriendsDao().getFriendById(friend.friend_id)
-                                Log.i("count", " : $count")
-                                if (count > 0) {
-
-                                    roomDb!!.FriendsDao().updateData(friend)
-                                } else {
-                                    roomDb!!.FriendsDao().insert(friend)
-                                }
-                            }
-                        }
-                    }
-
-                    override fun onCancelled(databaseError: DatabaseError) {
-                        // Getting Post failed, log a message
-                        Log.i("count", " : ${databaseError.message}")
-                    }
-                }
-                ref.child(contact.mobile_no.toString()).addListenerForSingleValueEvent(listener)
-                ref.child(contact.home_no.toString()).addListenerForSingleValueEvent(listener)
-                ref.child(contact.work_no.toString()).addListenerForSingleValueEvent(listener)
-                ref.child(contact.other_no.toString()).addListenerForSingleValueEvent(listener)
-                ref.child(contact.custom_no.toString()).addListenerForSingleValueEvent(listener)
+                ref.child(contact.mobile_no.toString())
+                        .addListenerForSingleValueEvent(getListener(contact, contact.mobile_no.toString()))
+                ref.child(contact.home_no.toString())
+                        .addListenerForSingleValueEvent(getListener(contact, contact.home_no.toString()))
+                ref.child(contact.work_no.toString())
+                        .addListenerForSingleValueEvent(getListener(contact, contact.work_no.toString()))
+                ref.child(contact.other_no.toString())
+                        .addListenerForSingleValueEvent(getListener(contact, contact.other_no.toString()))
+                ref.child(contact.custom_no.toString())
+                        .addListenerForSingleValueEvent(getListener(contact, contact.custom_no.toString()))
             }
         }
 
         removeDeletedFriendsContacts()
+    }
+
+    private fun getListener(contact:Contacts, mobile:String): ValueEventListener {
+        return object:ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+
+                if (dataSnapshot.exists()) {
+
+
+                    val data: User = dataSnapshot.getValue(User::class.java) as User
+                    if (data.userId != null) {
+                        val friend = Friend()
+                        friend.friend_id = contact.id.toString()
+                        friend.mobile_no = mobile
+                        friend.firebase_id = data.userId
+                        friend.name = contact.name
+
+                        //check if user in room
+                        Log.i("App User: ", " User Name: " + data.userName)
+                        val count: Int = roomDb!!.FriendsDao().getFriendById(friend.friend_id)
+                        Log.i("count", " : $count")
+                        if (count > 0) {
+
+                            roomDb!!.FriendsDao().updateData(friend)
+                        } else {
+                            roomDb!!.FriendsDao().insert(friend)
+                        }
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Getting Post failed, log a message
+                Log.i("count", " : ${databaseError.message}")
+            }
+        }
     }
 
     private fun removeDeletedFriendsContacts() {
