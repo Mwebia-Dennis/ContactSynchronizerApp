@@ -16,6 +16,8 @@ import com.penguinstech.contactsync.room.AppDatabase
 import com.penguinstech.contactsync.room.Contacts
 import com.penguinstech.contactsync.room.Friend
 import com.penguinstech.contactsync.room.SyncToken
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.*
 
 class SyncScheduler: BroadcastReceiver() {
@@ -44,8 +46,8 @@ class SyncScheduler: BroadcastReceiver() {
 
             }else {
                 //get all items
-                syncContacts()
                 contactList = roomDb!!.ContactDataDao().allByDate
+                syncContacts()
                 updateToken(SyncToken())
 
             }
@@ -91,15 +93,14 @@ class SyncScheduler: BroadcastReceiver() {
 
 
                             val data: User = dataSnapshot.getValue(User::class.java) as User
-//                            val data:HashMap<String, User> = dataSnapshot.value as HashMap<String, User>
-                            if(data.userName != null) {
+                            if (data.userId != null) {
                                 val friend = Friend()
                                 friend.friend_id = contact.id.toString()
                                 friend.mobile_no = contact.mobile_no
                                 friend.name = contact.name
 
                                 //check if user in room
-                                Log.i("App User: ", " User Name: " + data!!.userName)
+                                Log.i("App User: ", " User Name: " + data.userName)
                                 val count: Int = roomDb!!.FriendsDao().getFriendById(friend.friend_id)
                                 Log.i("count", " : $count")
                                 if (count > 0) {
@@ -117,7 +118,26 @@ class SyncScheduler: BroadcastReceiver() {
                         Log.i("count", " : ${databaseError.message}")
                     }
                 }
-                ref.child(contact.mobile_no.toString()).addValueEventListener(listener)
+                ref.child(contact.mobile_no.toString()).addListenerForSingleValueEvent(listener)
+                ref.child(contact.home_no.toString()).addListenerForSingleValueEvent(listener)
+                ref.child(contact.work_no.toString()).addListenerForSingleValueEvent(listener)
+                ref.child(contact.other_no.toString()).addListenerForSingleValueEvent(listener)
+                ref.child(contact.custom_no.toString()).addListenerForSingleValueEvent(listener)
+            }
+        }
+
+        removeDeletedFriendsContacts()
+    }
+
+    private fun removeDeletedFriendsContacts() {
+        GlobalScope.launch {
+            //get all friends
+            //check if friend is in contact else remove
+            val listOfFriends:List<Friend> = roomDb!!.FriendsDao().getFriends
+            listOfFriends.forEach {
+                if(roomDb!!.ContactDataDao().getContactInfo(it.friend_id) == null) {
+                    roomDb!!.FriendsDao().delete(it)
+                }
             }
         }
     }
@@ -152,7 +172,7 @@ class SyncScheduler: BroadcastReceiver() {
             am.setRepeating(
                     AlarmManager.RTC_WAKEUP,
                     midnight.timeInMillis, (1000 * 60 * 1).toLong(), pi
-            ) // Millisec * Second * Minute  = 1 hour
+            ) // Millisec * Second * Minute  = 1 minute
         }
     }
 

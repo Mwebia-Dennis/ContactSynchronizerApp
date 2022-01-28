@@ -18,4 +18,7 @@ interface FriendsDao {
 
     @Query("SELECT COUNT(id) FROM friends where friend_id = :friend_id")
     fun getFriendById(friend_id: String?): Int
+
+    @Delete
+    fun delete(friend: Friend)
 }
