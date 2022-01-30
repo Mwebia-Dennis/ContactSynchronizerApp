@@ -28,11 +28,10 @@ class ContObserver (handler: Handler?, var context: Context) : ContentObserver(h
     override fun onChange(selfChange: Boolean, uri: Uri?) {
         super.onChange(selfChange, uri)
         val cr = context.contentResolver
-        val projection = arrayOf(
-            ContactsContract.Contacts._ID,
-            ContactsContract.Contacts.DISPLAY_NAME,
-            ContactsContract.Contacts.HAS_PHONE_NUMBER
-        )
+//        val projection = arrayOf(
+//            ContactsContract.Contacts._ID,
+//            ContactsContract.Contacts.DISPLAY_NAME
+//        )
         val cur: Cursor? = cr.query(
             ContactsContract.Contacts.CONTENT_URI,
             null,
@@ -136,6 +135,11 @@ class ContObserver (handler: Handler?, var context: Context) : ContentObserver(h
                             val rawId = addedNewCursor.getString(
                                 addedNewCursor.getColumnIndex(ContactsContract.Contacts.NAME_RAW_CONTACT_ID)
                             )
+                            val mainData = Contacts()
+                            contactName =
+                                addedNewCursor.getString(addedNewCursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
+                            mainData.name = contactName
+                            mainData.rawId = rawId
                             if (addedNewCursor.getString(
                                     addedNewCursor.getColumnIndex(
                                         ContactsContract.Contacts.HAS_PHONE_NUMBER
@@ -151,16 +155,11 @@ class ContObserver (handler: Handler?, var context: Context) : ContentObserver(h
                                 )
                                 if (pCur != null) {
                                     pCur.moveToFirst()
-                                    val mainData = Contacts()
                                     contactNumber =
                                         pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
-                                    contactName =
-                                        pCur.getString(pCur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
                                     Log.i("TAG", " contact $contactNumber")
                                     //here you will get your contact information
                                     // email code starts here
-                                    mainData.name = contactName
-                                    mainData.rawId = rawId
                                     val numberCur = cr.query(
                                         ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                                         null,
@@ -200,15 +199,16 @@ class ContObserver (handler: Handler?, var context: Context) : ContentObserver(h
                                     addedNewCursor.close()
                                     Log.e("TAG", id + " THTTTTTTTTTT " + mainData.mobile_no)
                                     mainData.id = id.toInt()
-                                    AppDatabase.getDatabase(
-                                        context
-                                    ).ContactDataDao()
-                                        .insert(mainData)
-                                    Log.e("TAG", id + " check id " + mainData.id)
-                                    prefManager!!.count = (prefManager!!.count + 1)
-                                    handleEmails(context.applicationContext, id)
                                 }
                             }
+
+                            AppDatabase.getDatabase(
+                                context
+                            ).ContactDataDao()
+                                .insert(mainData)
+                            Log.e("TAG", id + " check id " + mainData.id)
+                            prefManager!!.count = (prefManager!!.count + 1)
+                            handleEmails(context.applicationContext, id)
                         } else {
                             if (cursor != null && cursor.count > 0) {
                                 //moving cursor to last position
@@ -222,6 +222,21 @@ class ContObserver (handler: Handler?, var context: Context) : ContentObserver(h
                                         cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID))
                                     val rawId =
                                         cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.NAME_RAW_CONTACT_ID))
+                                    var contactsData: Contacts = AppDatabase.getDatabase(
+                                        context
+                                    ).ContactDataDao().getContactInfo(id)
+                                    if (contactsData == null) {
+                                        newData = true
+                                        contactsData = Contacts()
+                                    }
+                                    contactsData.id = id.toInt()
+                                    contactsData.rawId = rawId
+                                    contactName =
+                                        cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
+                                    Log.i("TAG", " contact number$contactName")
+                                    //here you will get your contact information
+                                    // email code starts here
+                                    contactsData.name = contactName
                                     if (cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))
                                             .toInt() > 0
                                     ) {
@@ -234,23 +249,8 @@ class ContObserver (handler: Handler?, var context: Context) : ContentObserver(h
                                         )
                                         if (pCur != null) {
                                             pCur.moveToFirst()
-                                            var contactsData: Contacts = AppDatabase.getDatabase(
-                                                context
-                                            ).ContactDataDao().getContactInfo(id)
-                                            if (contactsData == null) {
-                                                newData = true
-                                                contactsData = Contacts()
-                                            }
-                                            contactsData.id = id.toInt()
-                                            contactsData.rawId = rawId
                                             contactNumber =
                                                 pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
-                                            contactName =
-                                                pCur.getString(pCur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
-                                            Log.i("TAG", " contact number$contactName")
-                                            //here you will get your contact information
-                                            // email code starts here
-                                            contactsData.name = contactName
                                             val numberCur = cr.query(
                                                 ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                                                 null,
@@ -281,26 +281,26 @@ class ContObserver (handler: Handler?, var context: Context) : ContentObserver(h
                                                     contactsData.work_no = phone
                                                 }
                                             }
-                                            if (AppDatabase.getDatabase(
-                                                    context
-                                                ).ContactDataDao()
-                                                    .getContactInfo(contactsData.id.toString()) != null
-                                            ) {
-                                                AppDatabase.getDatabase(
-                                                    context
-                                                ).ContactDataDao()
-                                                    .update(contactsData)
-                                            } else {
-                                                AppDatabase.getDatabase(
-                                                    context
-                                                ).ContactDataDao()
-                                                    .insert(contactsData)
-                                            }
-                                            handleEmails(context.applicationContext, id)
                                             pCur.close()
                                         }
                                         pCur!!.close()
                                     }
+                                    if (AppDatabase.getDatabase(
+                                            context
+                                        ).ContactDataDao()
+                                            .getContactInfo(contactsData.id.toString()) != null
+                                    ) {
+                                        AppDatabase.getDatabase(
+                                            context
+                                        ).ContactDataDao()
+                                            .update(contactsData)
+                                    } else {
+                                        AppDatabase.getDatabase(
+                                            context
+                                        ).ContactDataDao()
+                                            .insert(contactsData)
+                                    }
+                                    handleEmails(context.applicationContext, id)
                                     cursor.close()
                                 } else {
                                     lastUpdated = System.currentTimeMillis()
@@ -412,10 +412,10 @@ class ContObserver (handler: Handler?, var context: Context) : ContentObserver(h
                         dataHashMap["raw_id"] = rawId
                         val name =
                             cur.getString(cur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
+                        dataHashMap["name"] = name
                         if (cur.getString(cur.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))
                                 .toInt() > 0
                         ) {
-                            dataHashMap["name"] = name
                             // get the phone number
                             val pCur = cr.query(
                                 ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
@@ -457,8 +457,8 @@ class ContObserver (handler: Handler?, var context: Context) : ContentObserver(h
                             println("here $dataHashMap")
                             //                           if (prefManager.isFirstTimeLaunch()) {
 //                           }
-                            arrayList!!.add(dataHashMap)
                         }
+                        arrayList!!.add(dataHashMap)
                     }
                     cur.close()
                     processData(context)
