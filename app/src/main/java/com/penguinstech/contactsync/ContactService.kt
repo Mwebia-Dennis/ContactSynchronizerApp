@@ -81,10 +81,10 @@ class ContactService : Service() {
                     dataHashMap.put("look_up_key", lookupKey)
                     val name =
                         cur.getString(cur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
+                    dataHashMap.put("name", name)
                     if (cur.getString(cur.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))
                             .toInt() > 0
                     ) {
-                        dataHashMap.put("name", name)
                         // get the phone number
                         val pCur = cr.query(
                             ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
@@ -126,9 +126,9 @@ class ContactService : Service() {
                         println("here $dataHashMap")
                         //                           if (prefManager.isFirstTimeLaunch()) {
                         //                           }
-                        arrayList.add(dataHashMap)
 
                     }
+                    arrayList.add(dataHashMap)
                 }
             }
             cur.close()
@@ -196,7 +196,7 @@ class ContactService : Service() {
                             } else {
                                 val hashMap = HashMap<String, String>()
                                 hashMap.put("home_email", email)
-                                data.put("id", hashMap)
+                                data.put(id, hashMap)
                             }
                         }
                         if (emailType != null && emailType == "2" && email != null && email.trim { it <= ' ' }
@@ -207,7 +207,7 @@ class ContactService : Service() {
                             } else {
                                 val hashMap = HashMap<String, String>()
                                 hashMap.put("work_email", email)
-                                data.put("id", hashMap)
+                                data.put(id, hashMap)
                             }
                         }
                         if (emailType != null && emailType == "3" && email != null && email.trim { it <= ' ' }
@@ -218,7 +218,7 @@ class ContactService : Service() {
                             } else {
                                 val hashMap = HashMap<String, String>()
                                 hashMap.put("other_email", email)
-                                data.put("id", hashMap)
+                                data.put(id, hashMap)
                             }
                         }
                         if (emailType == null && email != null && email.trim { it <= ' ' }.isNotEmpty()) {
@@ -228,7 +228,7 @@ class ContactService : Service() {
                             } else {
                                 val hashMap = HashMap<String, String>()
                                 hashMap.put("custom_email", email)
-                                data.put("id", hashMap)
+                                data.put(id, hashMap)
                             }
                         }
                         //                            }
@@ -258,6 +258,7 @@ class ContactService : Service() {
     }
 
     private fun saveInDB(hashMap: HashMap<String, HashMap<String,String>>) {
+        Log.i("key", hashMap.keys.toString())
         GlobalScope.launch {
             for (i in arrayList.indices) {
                 val data: java.util.HashMap<String, String> = arrayList[i]

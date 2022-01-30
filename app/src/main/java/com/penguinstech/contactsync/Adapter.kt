@@ -19,7 +19,11 @@ class Adapter(val context: Context, private val contactsList: List<Contacts>) : 
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         holder.nameTv.text = contactsList[position].name
-        holder.phoneTv.text = contactsList[position].mobile_no
+        if(contactsList[position].mobile_no != "") {
+            holder.phoneTv.text = contactsList[position].mobile_no
+        }else{
+            holder.phoneTv.text = contactsList[position].personal_email
+        }
     }
 
     override fun getItemCount(): Int {
